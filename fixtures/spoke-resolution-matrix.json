@@ -1,0 +1,8 @@
+{
+  "spokeVnet": "vnet-spoke-payments",
+  "localPrivateZonesDetected": [
+    "privatelink.blob.core.windows.net"
+  ],
+  "resolvedIpClass": "PUBLIC_FALLBACK_DETECTED",
+  "expectedDecision": "VETO_SPLIT_BRAIN_DNS_DETECTED"
+}

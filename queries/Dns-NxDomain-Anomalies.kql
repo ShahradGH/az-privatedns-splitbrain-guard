@@ -1,0 +1,7 @@
+// Hunt rogue privatelink.* Private DNS Zones deployed outside the central Connectivity Hub subscription
+resources
+| where type =~ "microsoft.network/privatednszones"
+| where name startswith "privatelink."
+| where subscriptionId != "00000000-hub-connectivity-sub-id"
+| project name, resourceGroup, subscriptionId, vnetLinksCount = properties.numberOfVirtualNetworkLinks, recordCount = properties.numberOfRecordSets
+| order by vnetLinksCount desc

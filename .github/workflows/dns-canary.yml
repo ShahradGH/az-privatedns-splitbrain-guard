@@ -1,0 +1,9 @@
+name: Private DNS Guard CI
+on: [push]
+jobs:
+  pester:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - shell: pwsh
+        run: Invoke-Pester -Path ./tests/PrivateDnsGuard.Tests.ps1 -Output Detailed
