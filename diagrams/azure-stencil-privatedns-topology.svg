@@ -1,0 +1,139 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080">
+  <defs>
+    <style>
+      .bg { fill: #0a1128; }
+      .title { font-family: 'Segoe UI', Arial, sans-serif; font-size: 34px; font-weight: 700; fill: #f8fafc; }
+      .subtitle { font-family: 'Segoe UI', Arial, sans-serif; font-size: 18px; fill: #94a3b8; }
+      .enclave { fill: #0f1b3d; stroke: #38bdf8; stroke-width: 2.5; rx: 14; }
+      .enclave-warn { fill: #1f1224; stroke: #f43f5e; stroke-width: 2.5; stroke-dasharray: 8 6; rx: 14; }
+      .enclave-onprem { fill: #111c33; stroke: #a855f7; stroke-width: 2.5; rx: 14; }
+      .node { fill: #162447; stroke: #0ea5e9; stroke-width: 2; rx: 10; }
+      .node-ai { fill: #1a1f4a; stroke: #c084fc; stroke-width: 2; rx: 10; }
+      .node-veto { fill: #3b0d1d; stroke: #fb7185; stroke-width: 2; rx: 10; }
+      .node-ok { fill: #0d2e26; stroke: #10b981; stroke-width: 2; rx: 10; }
+      .lbl-hdr { font-family: 'Segoe UI', Arial, sans-serif; font-size: 20px; font-weight: 700; fill: #38bdf8; }
+      .lbl-hdr-warn { font-family: 'Segoe UI', Arial, sans-serif; font-size: 20px; font-weight: 700; fill: #fb7185; }
+      .lbl-hdr-onprem { font-family: 'Segoe UI', Arial, sans-serif; font-size: 20px; font-weight: 700; fill: #c084fc; }
+      .txt-main { font-family: 'Segoe UI', Arial, sans-serif; font-size: 17px; font-weight: 600; fill: #f1f5f9; }
+      .txt-sub { font-family: 'Consolas', 'Segoe UI', monospace; font-size: 14px; fill: #94a3b8; }
+      .txt-proto { font-family: 'Consolas', monospace; font-size: 13px; font-weight: 700; fill: #38bdf8; }
+      .txt-veto { font-family: 'Consolas', monospace; font-size: 13px; font-weight: 700; fill: #fb7185; }
+      .line-ok { stroke: #10b981; stroke-width: 3; fill: none; marker-end: url(#arrow-ok); }
+      .line-dns { stroke: #38bdf8; stroke-width: 3; fill: none; marker-end: url(#arrow-dns); }
+      .line-veto { stroke: #fb7185; stroke-width: 3; stroke-dasharray: 7 5; fill: none; marker-end: url(#arrow-veto); }
+      .line-ai { stroke: #c084fc; stroke-width: 2.5; fill: none; marker-end: url(#arrow-ai); }
+    </style>
+    <marker id="arrow-ok" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#10b981"/></marker>
+    <marker id="arrow-dns" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#38bdf8"/></marker>
+    <marker id="arrow-veto" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#fb7185"/></marker>
+    <marker id="arrow-ai" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#c084fc"/></marker>
+  </defs>
+
+  <rect class="bg" width="1920" height="1080"/>
+  <text x="60" y="65" class="title">Azure Private DNS Split-Brain Guard: Hub-Spoke &amp; 168.63.129.16 Topology</text>
+  <text x="60" y="98" class="subtitle">Centralised Connectivity Hub Resolver (172.16.0.0/16) • Azure Policy Deny/DINE • ARG Rogue-Zone Hunter • AI Trace Diagnostics</text>
+
+  <!-- On-Premises Enclave (Left) -->
+  <rect class="enclave-onprem" x="60" y="140" width="370" height="440"/>
+  <text x="85" y="180" class="lbl-hdr-onprem">ON-PREMISES / HYBRID</text>
+  <text x="85" y="205" class="txt-sub">RFC 1918: 192.168.0.0/16</text>
+
+  <rect class="node" x="90" y="235" width="310" height="95"/>
+  <text x="110" y="270" class="txt-main">Corporate DNS Forwarder</text>
+  <text x="110" y="295" class="txt-sub">Conditional Forwarder: privatelink.*</text>
+  <text x="110" y="315" class="txt-sub">Target: 172.16.1.4 (UDP/TCP 53)</text>
+
+  <rect class="node" x="90" y="370" width="310" height="95"/>
+  <text x="110" y="405" class="txt-main">ExpressRoute / S2S VPN Gateway</text>
+  <text x="110" y="430" class="txt-sub">BGP Peering &lt; 8 ms RTT</text>
+  <text x="110" y="450" class="txt-sub">Encrypted Transit to Hub VNet</text>
+
+  <!-- Connectivity Hub VNet (Center) -->
+  <rect class="enclave" x="500" y="140" width="760" height="630"/>
+  <text x="530" y="180" class="lbl-hdr">CONNECTIVITY HUB SUBSCRIPTION (Authorised DNS Authority)</text>
+  <text x="530" y="205" class="txt-sub">vnet-hub-connectivity • 172.16.0.0/16 • Sole Host for privatelink.* Zones</text>
+
+  <!-- Azure DNS Private Resolver -->
+  <rect class="node-ok" x="535" y="235" width="330" height="175"/>
+  <text x="555" y="268" class="txt-main">Azure DNS Private Resolver</text>
+  <text x="555" y="295" class="txt-sub">Inbound Subnet: 172.16.1.0/28</text>
+  <text x="555" y="318" class="txt-sub">Inbound VIP: 172.16.1.4:53</text>
+  <text x="555" y="345" class="txt-sub">Outbound Subnet: 172.16.1.64/28</text>
+  <text x="555" y="368" class="txt-sub">Outbound VIP: 172.16.1.68:53</text>
+  <text x="555" y="392" class="txt-sub">Forwarding Ruleset: corp.contoso.local</text>
+
+  <!-- Azure Wire Server 168.63.129.16 -->
+  <rect class="node" x="905" y="235" width="320" height="175"/>
+  <text x="925" y="268" class="txt-main">Azure Wire-Server Recursive</text>
+  <text x="925" y="295" class="txt-sub">Platform VIP: 168.63.129.16:53</text>
+  <text x="925" y="320" class="txt-sub">Evaluates VNet Links First</text>
+  <text x="925" y="345" class="txt-sub">SOA Negative Cache: 10s-60s</text>
+  <text x="925" y="370" class="txt-sub">Fallback Risk: Public CNAME if</text>
+  <text x="925" y="392" class="txt-sub">privateDnsZoneGroup missing</text>
+
+  <!-- Central Private DNS Zones -->
+  <rect class="node-ok" x="535" y="455" width="690" height="135"/>
+  <text x="555" y="490" class="txt-main">Central Hub Private DNS Zones (Microsoft.Network/privateDnsZones)</text>
+  <text x="555" y="520" class="txt-sub">• privatelink.blob.core.windows.net   • privatelink.vaultcore.azure.net</text>
+  <text x="555" y="545" class="txt-sub">• privatelink.database.windows.net    • privatelink.azurecr.io</text>
+  <text x="555" y="570" class="txt-sub">DINE Policy (UAMI) auto-registers Private Endpoint NICs via privateDnsZoneGroups</text>
+
+  <!-- Control Plane & AI Guardrails inside Hub/Platform -->
+  <rect class="node-ai" x="535" y="620" width="690" height="120"/>
+  <text x="555" y="655" class="txt-main">Platform Control Plane: ARG Hunter + AI Trace Diagnostician + Graph Alerts</text>
+  <text x="555" y="683" class="txt-sub">1. Wait-PrivateDnsRecordConvergence.ps1 (Invoke-AzRestMethod -> ARG resources)</text>
+  <text x="555" y="706" class="txt-sub">2. Diagnose-PrivateDnsTrace.ps1 (Confidence Gate &gt;= 0.72 | Prompt-Injection Filter)</text>
+  <text x="555" y="728" class="txt-sub">3. Send-NetOpsSplitBrainAlert.ps1 (Invoke-MgGraphRequest -&gt; Teams Adaptive Card)</text>
+
+  <!-- Compliant Spoke VNet (Top Right) -->
+  <rect class="enclave" x="1330" y="140" width="530" height="300"/>
+  <text x="1355" y="180" class="lbl-hdr">COMPLIANT SPOKE VNET (Orders)</text>
+  <text x="1355" y="205" class="txt-sub">vnet-spoke-orders • 172.17.0.0/16 • VNet Link -&gt; Hub Zones</text>
+
+  <rect class="node-ok" x="1360" y="235" width="470" height="85"/>
+  <text x="1380" y="268" class="txt-main">Workload VM / AKS Pod (172.17.4.15)</text>
+  <text x="1380" y="295" class="txt-sub">Resolve-DnsName -&gt; 168.63.129.16 -&gt; 172.17.8.12 (RFC 1918)</text>
+
+  <rect class="node-ok" x="1360" y="335" width="470" height="80"/>
+  <text x="1380" y="368" class="txt-main">Private Endpoint NIC (172.17.8.12)</text>
+  <text x="1380" y="393" class="txt-sub">Bound to Hub privateDnsZoneGroup (DINE Policy Enforced)</text>
+
+  <!-- Rogue Spoke VNet (Bottom Right) -->
+  <rect class="enclave-warn" x="1330" y="470" width="530" height="300"/>
+  <text x="1355" y="510" class="lbl-hdr-warn">ROGUE SPOKE VNET (Split-Brain Trap)</text>
+  <text x="1355" y="535" class="txt-sub">vnet-spoke-payments • 172.18.0.0/16 • Local Shadow Zone</text>
+
+  <rect class="node-veto" x="1360" y="565" width="470" height="90"/>
+  <text x="1380" y="598" class="txt-main">Shadow Zone: privatelink.blob.core.windows.net</text>
+  <text x="1380" y="623" class="txt-sub">VETO: Azure Policy Deny (hubSubscriptionId != spoke)</text>
+  <text x="1380" y="643" class="txt-sub">Causes NXDOMAIN -&gt; Public IP Fallback Leak (198.51.100.x)</text>
+
+  <rect class="node-veto" x="1360" y="670" width="470" height="75"/>
+  <text x="1380" y="702" class="txt-main">ARG Hunter &amp; AI Classifier Intervention</text>
+  <text x="1380" y="727" class="txt-sub">Status: VETO_SPOKE_LOCAL_ZONE_SPLIT_BRAIN</text>
+
+  <!-- Footer Governance Bar -->
+  <rect class="node" x="60" y="810" width="1800" height="210"/>
+  <text x="90" y="850" class="lbl-hdr">AZURE POLICY &amp; TELEMETRY INVARIANTS</text>
+  <text x="90" y="885" class="txt-main">• policies/deny-spoke-privatelink-zone.json: Hard Deny on Microsoft.Network/privateDnsZones (privatelink.*) when subscriptionId != hubSubscriptionId</text>
+  <text x="90" y="920" class="txt-main">• policies/dine-central-dns-zone-group.json: DeployIfNotExists attaches Private Endpoints to central Hub Private DNS Zones via UAMI</text>
+  <text x="90" y="955" class="txt-main">• queries/Dns-NxDomain-Anomalies.kql: Correlates DnsQueryLogs NXDOMAIN bursts with 168.63.129.16 public CNAME fallbacks</text>
+  <text x="90" y="990" class="txt-sub">Zero Bicep/Terraform in control plane • 100% PowerShell 7.4+ Invoke-AzRestMethod &amp; Microsoft Graph v2.x (Invoke-MgGraphRequest)</text>
+
+  <!-- Connectors -->
+  <path class="line-dns" d="M 400 282 L 450 282 L 450 417 L 400 417"/>
+  <path class="line-dns" d="M 400 417 L 535 320"/>
+  <text x="415" y="345" class="txt-proto">UDP/53</text>
+
+  <path class="line-ok" d="M 700 410 L 700 455"/>
+  <path class="line-ok" d="M 1065 410 L 1065 455"/>
+
+  <path class="line-ok" d="M 1360 278 L 1225 310"/>
+  <text x="1245" y="275" class="txt-proto">168.63.129.16</text>
+
+  <path class="line-veto" d="M 1360 610 L 1225 360"/>
+  <text x="1230" y="510" class="txt-veto">NXDOMAIN /</text>
+  <text x="1230" y="528" class="txt-veto">Public Leak</text>
+
+  <path class="line-ai" d="M 1225 680 L 1360 705"/>
+</svg>

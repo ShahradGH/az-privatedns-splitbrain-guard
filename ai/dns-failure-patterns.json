@@ -1,0 +1,111 @@
+{
+  "schemaVersion": "1.0.0",
+  "domain": "azure-private-dns-splitbrain",
+  "abstentionThreshold": 0.72,
+  "foundryToolSchema": {
+    "type": "function",
+    "function": {
+      "name": "diagnose_private_dns_trace",
+      "description": "Correlates Resolve-DnsName wire traces, 168.63.129.16 recursive responses, Azure Resource Graph privateDnsZones, and Private Endpoint privateDnsZoneGroups to isolate split-brain DNS failure modes.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "fqdn": { "type": "string", "description": "Target Azure PaaS FQDN under diagnosis." },
+          "resolvedIp": { "type": "string", "description": "IPv4 address returned by Resolve-DnsName." },
+          "rcode": { "type": "string", "enum": ["NOERROR", "NXDOMAIN", "SERVFAIL", "REFUSED"] },
+          "shadowZoneCount": { "type": "integer", "minimum": 0 },
+          "hasPrivateDnsZoneGroup": { "type": "boolean" },
+          "outboundForwarderReachable": { "type": "boolean" }
+        },
+        "required": ["fqdn", "resolvedIp", "rcode", "shadowZoneCount", "hasPrivateDnsZoneGroup"]
+      }
+    }
+  },
+  "patterns": [
+    {
+      "id": "SHADOW_SPOKE_ZONE",
+      "severity": "CRITICAL",
+      "confidenceBase": 0.96,
+      "signals": {
+        "requiresShadowZone": true,
+        "ipClass": ["PUBLIC", "RFC1918_MISMATCH", "NONE"],
+        "rcode": ["NXDOMAIN", "NOERROR"]
+      },
+      "rootCause": "A spoke subscription hosts a local privatelink.* Private DNS Zone linked to the spoke VNet, intercepting 168.63.129.16 queries before they reach the central Hub Private DNS Zone.",
+      "remediation": [
+        "Delete or unlink the rogue spoke privatelink.* Private DNS Zone after exporting any valid A records.",
+        "Assign policies/deny-spoke-privatelink-zone.json at the Landing Zones management group scope with hubSubscriptionId excluded.",
+        "Verify Private Endpoint NIC privateDnsZoneGroup binds to the central Hub zone."
+      ],
+      "kqlHint": "AzureDiagnostics | where Category == 'DnsQueryLogs' | where QueryName has 'privatelink' and ResponseCode == 'NXDOMAIN'"
+    },
+    {
+      "id": "MISSING_PRIVATE_DNS_ZONE_GROUP",
+      "severity": "HIGH",
+      "confidenceBase": 0.91,
+      "signals": {
+        "requiresShadowZone": false,
+        "requiresMissingZoneGroup": true,
+        "ipClass": ["PUBLIC"],
+        "rcode": ["NOERROR"]
+      },
+      "rootCause": "The Private Endpoint was provisioned without a privateDnsZoneGroup resource, leaving the central Hub privatelink.* zone without an A record and causing 168.63.129.16 to fall back to the public CNAME.",
+      "remediation": [
+        "Attach a privateDnsZoneGroup via Invoke-AzRestMethod targeting the central Hub Private DNS Zone.",
+        "Enforce policies/dine-central-dns-zone-group.json using a User-Assigned Managed Identity with Private DNS Zone Contributor on the Connectivity Hub."
+      ],
+      "kqlHint": "AzureActivity | where OperationNameValue == 'Microsoft.Network/privateEndpoints/privateDnsZoneGroups/write'"
+    },
+    {
+      "id": "STALE_CONDITIONAL_FORWARDER",
+      "severity": "HIGH",
+      "confidenceBase": 0.87,
+      "signals": {
+        "requiresShadowZone": false,
+        "requiresUnreachableForwarder": true,
+        "ipClass": ["NONE", "PUBLIC"],
+        "rcode": ["SERVFAIL", "NXDOMAIN", "REFUSED"]
+      },
+      "rootCause": "Azure DNS Private Resolver Outbound Ruleset forwards conditional domain queries to an unreachable or decommissioned on-premises DNS forwarder IP.",
+      "remediation": [
+        "Inspect Outbound Endpoint subnet (172.16.1.64/28) NSG rules for UDP/TCP 53 egress.",
+        "Update the DNS Forwarding Ruleset target IP via Invoke-AzRestMethod and validate ExpressRoute/VPN BGP routes."
+      ],
+      "kqlHint": "DNSInventory | where SubType == 'Forwarder' | summarize count() by Server, ResultCode"
+    },
+    {
+      "id": "PUBLIC_FALLBACK_LEAK",
+      "severity": "CRITICAL",
+      "confidenceBase": 0.89,
+      "signals": {
+        "requiresShadowZone": false,
+        "requiresMissingZoneGroup": false,
+        "ipClass": ["PUBLIC"],
+        "rcode": ["NOERROR"]
+      },
+      "rootCause": "Query traversed 168.63.129.16 and resolved the public PaaS CNAME to a public IPv4 address because the spoke VNet lacks a Virtual Network Link to the central Hub Private DNS Zone.",
+      "remediation": [
+        "Create a Microsoft.Network/privateDnsZones/virtualNetworkLinks resource linking the spoke VNet to the Hub Private DNS Zone.",
+        "Flush negative/public DNS cache on the workload host and re-run Wait-PrivateDnsRecordConvergence.ps1."
+      ],
+      "kqlHint": "VMConnection | where DestinationIp !startswith '10.' and DestinationIp !startswith '172.' and RemoteDnsCanonicalNames has 'privatelink'"
+    },
+    {
+      "id": "STALE_CACHE_CONVERGENCE",
+      "severity": "MEDIUM",
+      "confidenceBase": 0.78,
+      "signals": {
+        "requiresShadowZone": false,
+        "requiresMissingZoneGroup": false,
+        "ipClass": ["NONE"],
+        "rcode": ["NXDOMAIN"]
+      },
+      "rootCause": "Azure wire-server 168.63.129.16 is serving a negatively cached NXDOMAIN response within the Private DNS Zone SOA minimum TTL window immediately following Private Endpoint creation.",
+      "remediation": [
+        "Wait for SOA TTL expiry using Wait-PrivateDnsRecordConvergence.ps1 with exponential backoff.",
+        "Avoid issuing Resolve-DnsName pre-flight probes before privateDnsZoneGroup provisioning completes."
+      ],
+      "kqlHint": "DnsEvents | where QueryType == 'A' and ResultCode == 3 | summarize count() by Name, bin(TimeGenerated, 1m)"
+    }
+  ]
+}

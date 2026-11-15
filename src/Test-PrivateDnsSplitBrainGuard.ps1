@@ -2,7 +2,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)] [PSCustomObject]$DnsProbeResult,
-    [Parameter(Mandatory)] [string[]]$SpokeLocalPrivateDnsZones
+    [Parameter(Mandatory)] [AllowEmptyCollection()] [string[]]$SpokeLocalPrivateDnsZones
 )
 
 $ErrorActionPreference = 'Stop'

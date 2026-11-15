@@ -1,20 +1,67 @@
 {
-  "mode": "All",
-  "policyRule": {
-    "if": {
-      "allOf": [
-        {
-          "field": "type",
-          "equals": "Microsoft.Network/privateDnsZones"
-        },
-        {
-          "field": "name",
-          "like": "privatelink.*"
-        }
-      ]
+  "properties": {
+    "displayName": "Deny Spoke-Local PrivateLink DNS Zones",
+    "policyType": "Custom",
+    "mode": "All",
+    "description": "Prevents spoke subscriptions from provisioning local privatelink.* Private DNS Zones that create split-brain resolution contention against the central Connectivity Hub.",
+    "metadata": {
+      "category": "Network",
+      "version": "1.1.0"
     },
-    "then": {
-      "effect": "deny"
+    "parameters": {
+      "hubSubscriptionId": {
+        "type": "String",
+        "metadata": {
+          "displayName": "Connectivity Hub Subscription ID",
+          "description": "The sole subscription authorised to host central privatelink.* Private DNS Zones."
+        }
+      },
+      "excludedResourceGroups": {
+        "type": "Array",
+        "defaultValue": [],
+        "metadata": {
+          "displayName": "Excluded Resource Groups",
+          "description": "Optional sandbox resource groups exempted during migration."
+        }
+      },
+      "effect": {
+        "type": "String",
+        "allowedValues": [
+          "Deny",
+          "Audit",
+          "Disabled"
+        ],
+        "defaultValue": "Deny",
+        "metadata": {
+          "displayName": "Policy Effect",
+          "description": "Enforcement effect for spoke-local privatelink.* zones."
+        }
+      }
+    },
+    "policyRule": {
+      "if": {
+        "allOf": [
+          {
+            "field": "type",
+            "equals": "Microsoft.Network/privateDnsZones"
+          },
+          {
+            "field": "name",
+            "like": "privatelink.*"
+          },
+          {
+            "value": "[subscription().subscriptionId]",
+            "notEquals": "[parameters('hubSubscriptionId')]"
+          },
+          {
+            "value": "[resourceGroup().name]",
+            "notIn": "[parameters('excludedResourceGroups')]"
+          }
+        ]
+      },
+      "then": {
+        "effect": "[parameters('effect')]"
+      }
     }
   }
 }
